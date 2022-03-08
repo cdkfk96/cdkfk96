@@ -4,10 +4,14 @@ package Javaproject_0306;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,11 +24,14 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 
 
@@ -39,10 +46,15 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 	JButton btnAdd,btnDel,btnUpdate;
 	JRadioButton [] rb=new JRadioButton[8];
 	JCheckBox [] cb=new JCheckBox[5];
+	DefaultTableCellRenderer colrend,hearend;
+	TableColumn column;
+	
+	
 	
 	//Frame 추가
 	AddFrameSch addFrame=new AddFrameSch("일정 추가");
 	UpdateFrameSch updateFrame=new UpdateFrameSch("일정 수정");
+	DoubleClickFrame dcFrame=new DoubleClickFrame("일정 더블클릭");
 
 	ImageIcon icon0=new ImageIcon("C:\\sist0117\\image\\swingimage\\img7.gif");
 	ImageIcon icon1=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\1.png");
@@ -54,7 +66,7 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 	ImageIcon icon7=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\7.png");
 	ImageIcon iconbtn=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\8.png");
 	ImageIcon iconadd=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\aaa.png");
-	ImageIcon iconupd=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\uu.png");
+	ImageIcon iconupd=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\uuu.png");
 	ImageIcon icondel=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\del.png");
 	
 	
@@ -67,7 +79,7 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		cp=this.getContentPane();
 		this.setBounds(800, 200, 600, 550);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		cp.setBackground(new Color(255, 200, 100));
+		cp.setBackground(new Color(245, 245, 245));
 
 		
 		setDesign();
@@ -83,7 +95,7 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 	{
 		this.setLayout(null);
 		
-		Font f=new Font("한컴 말랑말랑 Bold",Font.BOLD,20);
+		Font f=new Font("한컴 말랑말랑 Bold",Font.BOLD,14);
 		Font b=new Font("한컴 말랑말랑 Regular",Font.BOLD,13);
 		
 		
@@ -96,11 +108,96 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		js.setFont(b);
 		this.add(js);
 		
+		
+		//테이블에서 숨기고 싶은 컬럼 숨기기
+		table.getColumn("No.").setWidth(0);
+		table.getColumn("No.").setMinWidth(0);
+		table.getColumn("No.").setMaxWidth(0);
+		
+		//테이블 행높이
+		table.setRowHeight(20);
+		
+		//테이블 셀 설정
+		colrend=new DefaultTableCellRenderer();
+		hearend=new DefaultTableCellRenderer();
+		
+		for(int i=0;i<=model.getColumnCount()-1;i++)
+		{
+			column=table.getColumnModel().getColumn(i);//각각의 셀들을 불러옴
+			colrend.setHorizontalAlignment(JLabel.CENTER);//각각의 셀들을 가운데로 정렬
+			hearend.setHorizontalAlignment(JLabel.CENTER);//헤드(컬럼네임) 부분을 가운데로 정렬
+			hearend.setBackground(new Color(255, 240, 245));
+			column.setCellRenderer(colrend); //각각의 셀들에 적용
+			column.setHeaderRenderer(hearend); //각각의 헤드에 적용
+		}
+		
+		table.setAutoCreateRowSorter(true);
+		
+		
+		
+		//열 간격
+		table.getColumnModel().getColumn(0).setPreferredWidth(0);
+		table.getColumnModel().getColumn(1).setPreferredWidth(15);
+		table.getColumnModel().getColumn(2).setPreferredWidth(45);
+		table.getColumnModel().getColumn(3).setPreferredWidth(45);
+		table.getColumnModel().getColumn(4).setPreferredWidth(130);
+		table.getColumnModel().getColumn(5).setPreferredWidth(50);
+
+		//마우스 이벤트(오른쪽 마우스 더블 클릭)
+		table.addMouseListener(new MouseAdapter() {
+			
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				// TODO Auto-generated method stub
+				super.mouseClicked(e);
+				
+				if(e.getClickCount()==2)
+				{ 
+					
+					int sr=table.getSelectedRow();
+					if(sr<0)
+						return;
+					
+					Connection conn=dbcon.getOracle();
+					Statement stmt=null;
+					ResultSet rs=null;
+					String sql="";
+					
+					String num=(String)model.getValueAt(sr, 0);
+					
+					
+					sql="select sday,weekday,category,cont,schetime from schedule where num="+num;
+					
+					try {
+						stmt=conn.createStatement();
+						rs=stmt.executeQuery(sql);
+						
+						if(rs.next())
+						{ 
+							dcFrame.scheday.setText(rs.getString("sday"));
+							dcFrame.schecont.setText(rs.getString("cont"));
+							dcFrame.schetime.setText(rs.getString("schetime"));
+							dcFrame.schecate.setText(rs.getString("category"));
+							dcFrame.weekday.setText(rs.getString("weekday"));
+							dcFrame.setVisible(true);
+						}
+						
+						
+					} catch (SQLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}finally {
+						dbcon.dbClose(rs, stmt, conn);
+					}
+				}
+			}	
+			
+		});
+		
 		//라디오버튼 추가
 		ButtonGroup bg=new ButtonGroup();
 		
 		//요일
-		
 		int xpos=30;
 		rb[0]=new JRadioButton(icon0);
 		rb[0].setBounds(7, 20, 60, 60);
@@ -108,10 +205,8 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		rb[0].addItemListener(this);
 		this.add(rb[0]);
 		
-		
 		for(int i=1;i<rb.length;i++)
 		{
-			//rb[i]=new JRadioButton(rb_title[i],i==0?true:false);
 			rb[i]=new JRadioButton(icon[i]);
 			rb[i].setBounds(xpos, 20, 90, 60);
 			rb[i].setOpaque(false);
@@ -121,58 +216,58 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 			bg.add(rb[i]);
 			this.add(rb[i]);
 			xpos+=75;
-			
-			
 		}
 		
-		
 		String [] str= {"운동","업무","병원","행사","기타"};
-		int a=45;
+		int a=60;
 		for(int i=0;i<cb.length;i++)
 		{
 			cb[i]=new JCheckBox(str[i]);
-			cb[i].setBounds(a, 100, 80, 30);
+			cb[i].setBounds(a, 90, 80, 30);
 			
 			cb[i].setFont(f);
-			a+=110;
+			a+=100;
 			cb[i].setOpaque(false);
+			bg.add(cb[i]);
 			this.add(cb[i]);
 			
 			cb[i].addItemListener(this);
 		}
-		
 		//버튼
 		btnAdd=new JButton(iconadd);
-		btnAdd.setBounds(110, 140, 60, 60);
+		btnAdd.setBounds(110, 135, 50, 50);
 		btnAdd.setOpaque(false);
 		btnAdd.setBorderPainted(false);
 		btnAdd.setBackground(null);
-		//btnAdd.setFont(b);
+
 		this.add(btnAdd);
 		btnAdd.addActionListener(this);
 				
 		btnUpdate=new JButton(iconupd);
-		btnUpdate.setBounds(260, 140, 60, 60);
+		btnUpdate.setBounds(260, 140, 50, 50);
 		btnUpdate.setOpaque(false);
 		btnUpdate.setBorderPainted(false);
 		btnUpdate.setBackground(null);
-		//btnUpdate.setFont(b);
+	
 		this.add(btnUpdate);
 		btnUpdate.addActionListener(this);
 			
 		btnDel=new JButton(icondel);
-		btnDel.setBounds(410, 140, 60, 60);
+		btnDel.setBounds(410, 135, 50, 50);
 		btnDel.setOpaque(false);
 		btnDel.setBorderPainted(false);
 		btnDel.setBackground(null);
-		//btnDel.setFont(b);
+	
 		this.add(btnDel);
 		btnDel.addActionListener(this);
 		
 		addFrame.btnAdd.addActionListener(this);
 		updateFrame.btnMod.addActionListener(this);
+		dcFrame.btnExit.addActionListener(this);
 	}
+	
 
+		
 	public void scheduleTableWrite(int select)
 	{
 		String sql="";
@@ -205,7 +300,6 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 			
 			while(rs.next())
 			{
-				
 				Vector<String> data=new Vector<String>();
 				
 				data.add(rs.getString("num"));
@@ -214,7 +308,6 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 				data.add(rs.getString("category"));
 				data.add(rs.getString("cont"));
 				data.add(rs.getString("schetime"));
-				
 				
 				model.addRow(data);
 				
@@ -226,7 +319,6 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		}finally {
 			dbcon.dbClose(rs, stmt, conn);
 		}
-		
 	}
 	
 	//체크박스 선택 시
@@ -235,10 +327,6 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		String sql="";
 		if(select==1)
 			sql="select num,sday,weekday,category,cont,schetime from schedule where category='운동' order by sday";
-		
-		else if(select==1&&select==2)
-			sql="select num,sday,weekday,category,cont,schetime from schedule where category='운동' and category='업무' order by sday ";
-		
 		else if(select==2)
 			sql="select num,sday,weekday,category,cont,schetime from schedule where category='업무' order by sday";
 		else if(select==3)
@@ -280,16 +368,13 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		}finally {
 			dbcon.dbClose(rs, stmt, conn);
 		}
-		
 	}
-	
 	
 	public void insertData()
 	{
 		String sday=addFrame.tfSday.getText();
 		String cont=addFrame.tfCon.getText();
 		String schetime=addFrame.tfTime1.getText();
-		//String schetime2=addFrame.tfTime2.getText();
 		String category=(String)addFrame.cbCategory.getSelectedItem();
 		String weekday=(String)addFrame.cbweekday.getSelectedItem();
 		int day=Integer.parseInt(sday);
@@ -302,6 +387,7 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		
 		try {
 			pstmt=conn.prepareStatement(sql);
+			
 			
 			pstmt.setString(1, sday);
 			pstmt.setString(2, weekday);
@@ -322,14 +408,12 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		
 	}
 	
-	
 		public void updateData()
 		{
 			String num=updateFrame.num;
 			String sday=updateFrame.tfSday.getText();
 			String cont=updateFrame.tfCon.getText();
 			String schetime=updateFrame.tfTime1.getText();
-			//String schetime2=updateFrame.tfTime2.getText();
 			String category=(String)updateFrame.cbCategory.getSelectedItem();
 			String weekday=(String)updateFrame.cbweekday.getSelectedItem();
 			int day=Integer.parseInt(sday);
@@ -411,20 +495,17 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		}
 		else if(ob==btnUpdate)
 		{
-			
-			//System.out.println("update");
 			int row=table.getSelectedRow();
-			System.out.println(row);
+		
 			
 			if(row==-1)
 			{
 				JOptionPane.showMessageDialog(this, "수정할 행을 선택해주세요");
-				return; //메서드 종료
+				return; 
 			}
 			
 			
 			String num=(String)model.getValueAt(row, 0);
-			System.out.println(num);
 			
 			
 			sql="select sday,weekday,category,cont,schetime from schedule where num="+num;
@@ -439,7 +520,6 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 					updateFrame.tfSday.setText(rs.getString("sday"));
 					updateFrame.tfCon.setText(rs.getString("cont"));
 					updateFrame.tfTime1.setText(rs.getString("schetime"));
-					//updateFrame.tfTime2.setText(rs.getString("schetime"));
 					updateFrame.cbCategory.setSelectedItem(rs.getString("category"));
 					updateFrame.cbweekday.setSelectedItem(rs.getString("weekday"));
 					updateFrame.setVisible(true);
@@ -451,7 +531,7 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}finally {
-				dbcon.dbClose(rs, pstmt, conn);
+				dbcon.dbClose(rs, stmt, conn);
 			}
 		}
 			
@@ -460,17 +540,14 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 		{
 			
 			int row=table.getSelectedRow();
-			System.out.println(row);
-			
+		
 			if(row==-1)
 			{
 				JOptionPane.showMessageDialog(this, "삭제할 행을 선택해주세요");
 				return; 
 			}
 			
-			
 			String num=(String)model.getValueAt(row, 0);
-			System.out.println(num);
 			
 			sql="delete from schedule where num=?";
 			
@@ -503,7 +580,6 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 			addFrame.tfSday.setText("");
 			addFrame.tfCon.setText("");
 			addFrame.tfTime1.setText("");
-			//addFrame.tfTime2.setText("");
 			addFrame.cbweekday.setSelectedIndex(0); 
 			addFrame.cbCategory.setSelectedIndex(0);
 			addFrame.tfSday.requestFocus(); 
@@ -523,23 +599,23 @@ public class Dayselect extends JFrame implements ItemListener,ActionListener{
 			updateFrame.tfSday.setText("");
 			updateFrame.tfCon.setText("");
 			updateFrame.tfTime1.setText("");
-			//updateFrame.tfTime2.setText("");
 			updateFrame.cbweekday.setSelectedIndex(0); 
 			updateFrame.cbCategory.setSelectedIndex(0);
 			updateFrame.tfSday.requestFocus(); 
 			
-			
 			updateFrame.setVisible(false);
 			
 		}
-		
-		
+		else if(ob==dcFrame.btnExit)
+		{
+			dcFrame.setVisible(false);
+		}
 	}
 	
 	public static void main(String[] args) {
 		
 
-		new Dayselect("2월 일정표");
+		new Dayselect("2022년 2월 일정표");
 		
 	}
 

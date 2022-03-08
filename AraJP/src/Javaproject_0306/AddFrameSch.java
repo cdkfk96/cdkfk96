@@ -2,7 +2,9 @@ package Javaproject_0306;
 
 import java.awt.Color;
 import java.awt.Container;
+import java.awt.Font;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
@@ -13,10 +15,12 @@ import javax.swing.JTextField;
 public class AddFrameSch extends JFrame{
 
 	Container cp; 
-	JLabel titleSday,titleCategory,titleCon,titleTime,titleWeekday,timeBet,a;
-	JTextField tfSday,tfCon,tfTime1,tfTime2;
+	JLabel titleSday,titleCategory,titleCon,titleTime,titleWeekday;
+	JTextField tfSday,tfCon,tfTime1;
 	JComboBox<String> cbCategory,cbweekday;
 	JButton btnAdd;
+	
+	ImageIcon iconadd=new ImageIcon("C:\\Users\\cdkfk\\Desktop\\picture\\aaaa.png");
 	
 	public AddFrameSch(String title)
 	{
@@ -24,7 +28,7 @@ public class AddFrameSch extends JFrame{
 		cp=this.getContentPane();
 		this.setBounds(200, 100, 290, 310);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		cp.setBackground(new Color(255, 200, 255));
+		cp.setBackground(new Color(255, 240, 245));
 
 		initDesign();
 		//this.setVisible(true);
@@ -33,19 +37,26 @@ public class AddFrameSch extends JFrame{
 	public void initDesign()
 	{
 		this.setLayout(null);
+		
+		Font a=new Font("한컴 말랑말랑 Regular",Font.BOLD,14);
+		
+		
 		//label
 		titleSday=new JLabel("날짜");
+		titleSday.setFont(a);
 		titleCategory=new JLabel("카테고리");
+		titleCategory.setFont(a);
 		titleCon=new JLabel("내용");
+		titleCon.setFont(a);
 		titleTime=new JLabel("시간");
+		titleTime.setFont(a);
 		titleWeekday=new JLabel("요일");
-		timeBet=new JLabel(":");
+		titleWeekday.setFont(a);
 		
 		//tf
 		tfSday=new JTextField(20);
 		tfCon=new JTextField(20);
 		tfTime1=new JTextField(20);
-		tfTime2=new JTextField(20);
 		
 		//cb
 		String [] category= {"운동","업무","병원","행사","기타"};
@@ -54,7 +65,7 @@ public class AddFrameSch extends JFrame{
 		cbweekday=new JComboBox<String>(weekday);  
 		
 		//btn
-		btnAdd=new JButton("추가");
+		btnAdd=new JButton(iconadd);
 		
 		//컴포넌트들의 위치선정
 		titleSday.setBounds(55, 20, 60, 30);
@@ -76,14 +87,14 @@ public class AddFrameSch extends JFrame{
 		this.add(tfCon);
 		tfTime1.setBounds(115, 145, 70, 20);
 		this.add(tfTime1);
-		//timeBet.setBounds(148, 145, 15, 20);
-		//this.add(timeBet);
-		//tfTime2.setBounds(155, 145, 30, 20);
-		//this.add(tfTime2);
 		cbweekday.setBounds(115, 185, 70, 20);
 		this.add(cbweekday);
 		
-		btnAdd.setBounds(95, 220, 70, 25);
+		
+		btnAdd.setBounds(112, 220, 30, 30);
+		btnAdd.setOpaque(false);
+		btnAdd.setBorderPainted(false);
+		btnAdd.setBackground(null);
 		this.add(btnAdd);
 		
 		
